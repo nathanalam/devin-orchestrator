@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { api } from '../services/api';
-import { Send, Bot, AlertCircle, PlusCircle, ExternalLink, MessageSquare, Calendar, Play, ArrowLeft } from 'lucide-react';
+import { Send, Bot, AlertCircle, PlusCircle, ExternalLink, MessageSquare, Play, ArrowLeft } from 'lucide-react';
 
 interface Repo {
     id: number;
