@@ -22,6 +22,11 @@ interface Issue {
         login: string;
         avatar_url: string;
     };
+    pull_request?: {
+        url: string;
+        html_url: string;
+    };
+    linked_pr_url?: string;
 }
 
 interface ProjectViewProps {
@@ -87,8 +92,37 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
     const loadIssues = async () => {
         setLoadingIssues(true);
         try {
-            const data = await api.github.listIssues(repo.full_name.split('/')[0], repo.name);
-            setIssues(data);
+            const data: Issue[] = await api.github.listIssues(repo.full_name.split('/')[0], repo.name);
+            
+            // Separate issues and PRs
+            const prs = data.filter(item => item.pull_request);
+            const actualIssues = data.filter(item => !item.pull_request);
+            
+            // Create a map of issue numbers to their linked PRs
+            // PRs often reference issues with patterns like "fixes #123", "closes #123", etc.
+            const issueToLinkedPr: Record<number, string> = {};
+            
+            for (const pr of prs) {
+                const bodyAndTitle = `${pr.title} ${pr.body || ''}`;
+                // Match patterns like: fixes #123, closes #123, resolves #123, etc.
+                const issueRefs = bodyAndTitle.match(/(?:fix(?:es)?|close[sd]?|resolve[sd]?)\s*#(\d+)/gi);
+                if (issueRefs) {
+                    for (const ref of issueRefs) {
+                        const issueNum = parseInt(ref.match(/#(\d+)/)![1], 10);
+                        if (!issueToLinkedPr[issueNum]) {
+                            issueToLinkedPr[issueNum] = pr.html_url;
+                        }
+                    }
+                }
+            }
+            
+            // Add linked PR URLs to issues
+            const issuesWithLinkedPrs = actualIssues.map(issue => ({
+                ...issue,
+                linked_pr_url: issueToLinkedPr[issue.number]
+            }));
+            
+            setIssues(issuesWithLinkedPrs);
         } catch (e) {
             console.error(e);
         } finally {
@@ -584,6 +618,34 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                                     <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', margin: '0.5rem 0 1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                         {issue.body}
                                     </p>
+                                    {issue.linked_pr_url && (
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '0.5rem', 
+                                            padding: '0.5rem 0.75rem', 
+                                            background: 'rgba(139, 92, 246, 0.1)', 
+                                            borderRadius: 'var(--radius-md)',
+                                            marginBottom: '0.5rem',
+                                            fontSize: '0.85rem'
+                                        }}>
+                                            <span style={{ color: 'var(--color-text-muted)' }}>Linked PR:</span>
+                                            <a 
+                                                href={issue.linked_pr_url} 
+                                                target="_blank" 
+                                                rel="noreferrer"
+                                                style={{ 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '0.25rem',
+                                                    color: '#8B5CF6',
+                                                    textDecoration: 'none'
+                                                }}
+                                            >
+                                                <ExternalLink size={14} /> View PR
+                                            </a>
+                                        </div>
+                                    )}
                                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                                         <a
                                             href={issue.html_url} target="_blank" rel="noreferrer"
