@@ -33,8 +33,11 @@ interface Session {
     status: string;
     created_at: string;
     updated_at: string;
-    url?: string; // v1 might return this
+    url?: string;
     title?: string;
+    tags?: string[];
+    pull_request?: { url: string };
+    structured_output?: { pull_request_url?: string };
 }
 
 interface Message {
@@ -60,6 +63,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
     // Chat/Session View State
     const [activeView, setActiveView] = useState<'list' | 'chat'>('list');
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+    const [currentSession, setCurrentSession] = useState<Session | null>(null);
     const [currentIssue, setCurrentIssue] = useState<Issue | null>(null);
 
     const [chatMessages, setChatMessages] = useState<Message[]>([]);
@@ -100,8 +104,11 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
             // Assuming response has { sessions: [] } or just []
             const sessionList = res.sessions || res || [];
             if (Array.isArray(sessionList)) {
-                // Simple client-side check if possible, or just show all
-                setSessions(sessionList);
+                // Filter by repo tag as per instruction: "repo:owner/repo"
+                const strictFiltered = sessionList.filter((s: Session) =>
+                    s.tags && s.tags.includes(`repo:${repo.full_name}`)
+                );
+                setSessions(strictFiltered);
             }
         } catch (e) {
             console.error("Failed to list sessions", e);
@@ -147,9 +154,10 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
 
     const openSession = (session: Session) => {
         setCurrentSessionId(session.session_id);
+        setCurrentSession(session);
         setCurrentIssue(null); // Generic session
         setActiveView('chat');
-        setSessionStatus('running'); // Assume running/done
+        setSessionStatus(session.status === 'running' ? 'running' : 'init');
         loadChatHistory(session.session_id);
     };
 
@@ -235,6 +243,13 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
     const loadChatHistory = async (sid: string) => {
         try {
             const data = await api.devin.getSession(sid);
+
+            // Update session details if available
+            if (data && data.session_id === sid) {
+                //@ts-ignore
+                setCurrentSession(prev => ({ ...(prev || {}), ...data }));
+            }
+
             if (data.messages && Array.isArray(data.messages)) {
                 const mappedMessages = data.messages.map((m: any) => ({
                     role: m.role === 'model' ? 'assistant' : m.role,
@@ -322,15 +337,27 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                     </button>
                     <div>
                         <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>
-                            {currentIssue ? `Issue #${currentIssue.number}: ${currentIssue.title}` : 'Devin Session'}
+                            {currentSession?.title || (currentIssue ? `Issue #${currentIssue.number}: ${currentIssue.title}` : 'Devin Session')}
                         </h2>
                         <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{
                                 width: 8, height: 8, borderRadius: '50%',
-                                background: sessionStatus === 'running' ? 'var(--color-success)' : 'var(--color-warning)'
+                                background: sessionStatus === 'running' || currentSession?.status === 'running' ? 'var(--color-success)' : 'var(--color-warning)'
                             }} />
-                            {sessionStatus === 'running' ? 'In Progress' : 'Requirement Gathering'}
+                            {currentSession?.status || (sessionStatus === 'running' ? 'In Progress' : 'Requirement Gathering')}
                         </div>
+                        {(currentSession?.pull_request?.url || currentSession?.structured_output?.pull_request_url) && (
+                            <div style={{ marginTop: '0.25rem' }}>
+                                <a
+                                    href={currentSession?.pull_request?.url || currentSession?.structured_output?.pull_request_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                                >
+                                    <ExternalLink size={12} /> View Pull Request
+                                </a>
+                            </div>
+                        )}
                     </div>
                     {sessionStatus === 'gathering' && (
                         <button
