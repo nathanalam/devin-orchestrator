@@ -14,15 +14,36 @@ export const Dashboard: React.FC = () => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     useEffect(() => {
-        if (token) {
-            api.github.getUser()
-                .then(() => setIsAuthenticated(true))
-                .catch(() => setIsAuthenticated(false))
-                .finally(() => setIsCheckingAuth(false));
-        } else {
-            setIsCheckingAuth(false);
-        }
-    }, [token]);
+        const checkAuth = async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code) {
+                try {
+                    setIsCheckingAuth(true);
+                    const data = await api.github.exchangeToken(code);
+                    if (data.access_token) {
+                        api.setGithubToken(data.access_token);
+                        setToken(data.access_token);
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                } catch (e) {
+                    console.error("OAuth error", e);
+                }
+            }
+
+            const storedToken = api.getGithubToken();
+            if (storedToken) {
+                api.github.getUser()
+                    .then(() => setIsAuthenticated(true))
+                    .catch(() => setIsAuthenticated(false))
+                    .finally(() => setIsCheckingAuth(false));
+            } else {
+                setIsCheckingAuth(false);
+            }
+        };
+        checkAuth();
+    }, []);
 
     const handleLogin = () => {
         api.setGithubToken(token);
@@ -37,6 +58,7 @@ export const Dashboard: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: '100vh',
+                width: '100%',
                 background: 'var(--color-bg-primary)'
             }}>
                 <div style={{
@@ -63,6 +85,7 @@ export const Dashboard: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: '100vh',
+                width: '100%',
                 padding: '2rem'
             }}>
                 <div style={{
@@ -106,6 +129,7 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
                         <div>
                             <label style={{
                                 display: 'block',
@@ -114,31 +138,37 @@ export const Dashboard: React.FC = () => {
                                 marginBottom: '0.5rem',
                                 color: 'var(--color-text-secondary)'
                             }}>
-                                GitHub Personal Access Token
+                                GitHub Access
                             </label>
-                            <div style={{ position: 'relative' }}>
-                                <Github
-                                    style={{
-                                        position: 'absolute',
-                                        left: '1rem',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                        color: 'var(--color-text-muted)'
-                                    }}
-                                    size={18}
-                                />
-                                <input
-                                    type="password"
-                                    style={{ paddingLeft: '3rem' }}
-                                    placeholder="ghp_..."
-                                    value={token}
-                                    onChange={e => setToken(e.target.value)}
-                                />
-                            </div>
+                            <button
+                                onClick={() => window.location.href = `https://github.com/login/oauth/authorize?client_id=Ov23lieuQ7c564WTAo3f&scope=repo,user`}
+                                style={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.75rem',
+                                    padding: '0.875rem',
+                                    borderRadius: 'var(--radius-md)',
+                                    background: '#24292e',
+                                    color: 'white',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    transition: 'transform 0.2s',
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                                <Github size={20} />
+                                Connect with GitHub
+                            </button>
                             <p style={{
                                 fontSize: '0.75rem',
                                 color: 'var(--color-text-muted)',
-                                marginTop: '0.5rem'
+                                marginTop: '0.5rem',
+                                textAlign: 'center'
                             }}>
                                 Required to access repositories and manage issues
                             </p>

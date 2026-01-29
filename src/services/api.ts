@@ -37,6 +37,10 @@ export const api = {
         createIssue: async (owner: string, repo: string, title: string, body: string) => {
             const res = await axios.post(`https://api.github.com/repos/${owner}/${repo}/issues`, { title, body }, { headers: getGithubHeaders() });
             return res.data;
+        },
+        exchangeToken: async (code: string) => {
+            const res = await axios.post('/.netlify/functions/exchange-token', { code });
+            return res.data;
         }
     },
 
