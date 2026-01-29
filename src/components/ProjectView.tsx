@@ -178,10 +178,25 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                 localStorage.setItem(`devin_session_issue_${repo.full_name}_${issue.number}`, sid);
 
                 // Update UI to show session created
-                setChatMessages(prev => [...prev, { role: 'system', content: `Session ${sid.substring(0, 8)} created. Assessing confidence...` }]);
+                setChatMessages(prev => [...prev, { role: 'system', content: `Session ${sid.substring(0, 8)} created. Waiting for initialization...` }]);
 
-                // Wait a moment for session to completely initialize/propagate
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Poll to confirm session exists before interacting
+                let attempts = 0;
+                let initialized = false;
+                while (attempts < 10 && !initialized) {
+                    try {
+                        await api.devin.getSession(sid);
+                        initialized = true;
+                    } catch (e) {
+                        // Wait 1s before retry
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        attempts++;
+                    }
+                }
+
+                if (!initialized) {
+                    throw new Error("Timed out waiting for session to initialize");
+                }
 
                 // Prompt for Confidence
                 const confidencePrompt = `Assess your confidence in addressing this issue. 

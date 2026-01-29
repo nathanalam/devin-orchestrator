@@ -51,8 +51,8 @@ export const handler = async function (event, context) {
             case 'sendMessage':
                 if (!sessionId) throw new Error('Missing session ID');
                 response = await axios.post(
-                    `https://api.devin.ai/v1/sessions/${sessionId}/messages`,
-                    { content: payload.message },
+                    `https://api.devin.ai/v1/sessions/${sessionId}/message`,
+                    { message: payload.message }, // API expects "message" key
                     axiosConfig
                 );
                 break;
