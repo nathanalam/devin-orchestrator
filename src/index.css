@@ -2,16 +2,17 @@
 
 :root {
   /* Premium Color Palette */
-  --color-bg-primary: #0a0e1a;
+  --color-bg-primary: #11141b;
   --color-bg-secondary: #0f1419;
-  --color-surface: rgba(17, 24, 39, 0.6);
+  --color-surface: rgba(17, 20, 27, 0.6);
   --color-surface-elevated: rgba(31, 41, 55, 0.8);
   --color-surface-hover: rgba(55, 65, 81, 0.6);
 
+
   /* Vibrant Accent Colors */
-  --color-primary: #6366f1;
-  --color-primary-hover: #818cf8;
-  --color-primary-light: rgba(99, 102, 241, 0.1);
+  --color-primary: #61bf9d;
+  --color-primary-hover: #4b98dc;
+  --color-primary-light: rgba(97, 191, 157, 0.1);
   --color-secondary: #8b5cf6;
   --color-accent: #ec4899;
   --color-success: #10b981;
@@ -25,19 +26,19 @@
 
   /* Border & Divider */
   --color-border: rgba(75, 85, 99, 0.3);
-  --color-border-hover: rgba(99, 102, 241, 0.5);
+  --color-border-hover: rgba(97, 191, 157, 0.5);
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-primary: linear-gradient(135deg, #61bf9d 0%, #4b98dc 100%);
   --gradient-secondary: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
-  --gradient-surface: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+  --gradient-surface: linear-gradient(135deg, rgba(97, 191, 157, 0.05) 0%, rgba(75, 152, 220, 0.05) 100%);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow: 0 0 20px rgba(97, 191, 157, 0.3);
 
   /* Spacing */
   --radius-sm: 0.5rem;
@@ -65,8 +66,8 @@ body {
   font-family: var(--font-family);
   background: var(--color-bg-primary);
   background-image:
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(97, 191, 157, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(75, 152, 220, 0.1) 0px, transparent 50%);
   background-attachment: fixed;
   color: var(--color-text-primary);
   overflow: hidden;
@@ -230,7 +231,7 @@ h3 {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(97, 191, 157, 0.4);
 }
 
 /* Animations */

@@ -3,7 +3,7 @@ import { RepoList } from './RepoList';
 import { ProjectView } from './ProjectView';
 import { SettingsModal } from './SettingsModal';
 import { api } from '../services/api';
-import { Github, Key, Sparkles, Settings } from 'lucide-react';
+import { Github, Key, Settings } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
     const [selectedRepo, setSelectedRepo] = useState<any>(null);
@@ -80,14 +80,11 @@ export const Dashboard: React.FC = () => {
                             width: '80px',
                             height: '80px',
                             margin: '0 auto 1.5rem',
-                            background: 'var(--gradient-primary)',
                             borderRadius: 'var(--radius-lg)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            overflow: 'hidden',
                             boxShadow: 'var(--shadow-glow)'
                         }}>
-                            <Sparkles size={40} color="white" />
+                            <img src="/logo.png" alt="Do" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                         <h1 style={{
                             fontSize: '2rem',
@@ -232,13 +229,13 @@ export const Dashboard: React.FC = () => {
                         <div style={{
                             width: '36px',
                             height: '36px',
-                            background: 'var(--gradient-primary)',
                             borderRadius: 'var(--radius-md)',
+                            overflow: 'hidden',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center'
                         }}>
-                            <Sparkles size={20} color="white" />
+                            <img src="/logo.png" alt="Do" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                         Devin Orchestrator
                     </h1>
