@@ -211,8 +211,9 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                 if (msgs.length > 0) {
                     const lastMsg = msgs[msgs.length - 1];
                     // Look for JSON in the assistant's response
-                    if (lastMsg && (lastMsg.role === 'assistant' || lastMsg.role === 'model')) {
-                        const content = lastMsg.body || lastMsg.content || "";
+                    const isAssistant = lastMsg.type === 'devin_message' || lastMsg.role === 'assistant' || lastMsg.role === 'model';
+                    if (lastMsg && isAssistant) {
+                        const content = lastMsg.message || lastMsg.body || lastMsg.content || "";
                         const jsonMatch = content.match(/\{[\s\S]*"score"[\s\S]*\}/);
                         if (jsonMatch) {
                             try {
@@ -223,8 +224,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                                     parsed = true;
 
                                     const mappedMessages = msgs.map((m: any) => ({
-                                        role: m.role === 'model' ? 'assistant' : m.role,
-                                        content: m.body || m.content
+                                        role: (m.type === 'devin_message' || m.role === 'model' || m.role === 'assistant') ? 'assistant' : 'user',
+                                        content: m.message || m.body || m.content || ''
                                     }));
                                     setChatMessages(mappedMessages);
                                 }
@@ -252,8 +253,8 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
 
             if (data.messages && Array.isArray(data.messages)) {
                 const mappedMessages = data.messages.map((m: any) => ({
-                    role: m.role === 'model' ? 'assistant' : m.role,
-                    content: m.body || m.content
+                    role: (m.type === 'devin_message' || m.role === 'model' || m.role === 'assistant') ? 'assistant' : 'user',
+                    content: m.message || m.body || m.content || ''
                 }));
                 setChatMessages(mappedMessages);
             }
