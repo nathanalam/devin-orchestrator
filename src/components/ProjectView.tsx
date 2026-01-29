@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { Send, FileText, Bot, AlertCircle, PlusCircle, ExternalLink } from 'lucide-react';
+import { Send, Bot, AlertCircle, PlusCircle, ExternalLink } from 'lucide-react';
 
 interface Repo {
     id: number;
@@ -101,6 +101,7 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
 
         try {
             const res = await api.devin.sendMessage(sessionId, msg);
+            console.log("Message sent:", res);
             // Assuming response structure, waiting for 'messages' or similar update
             // Usually we might need to poll for updates or use a websocket?
             // For this dashboard, we might just assume basic response or success
