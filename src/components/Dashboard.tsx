@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { RepoList } from './RepoList';
 import { ProjectView } from './ProjectView';
+import { SettingsModal } from './SettingsModal';
 import { api } from '../services/api';
-import { Github, Key, Sparkles } from 'lucide-react';
+import { Github, Key, Sparkles, Settings } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
     const [selectedRepo, setSelectedRepo] = useState<any>(null);
@@ -10,6 +11,7 @@ export const Dashboard: React.FC = () => {
     const [devinToken, setDevinToken] = useState(api.getDevinToken() || 'cog_7n2jwn5xsglgpnmyc24ydtecy4gqhczpq3c66bttel47gzjhtyjq');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     useEffect(() => {
         if (token) {
@@ -201,6 +203,11 @@ export const Dashboard: React.FC = () => {
             height: '100vh',
             width: '100%'
         }}>
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
+
             <aside style={{
                 width: '360px',
                 background: 'var(--color-surface)',
@@ -244,7 +251,10 @@ export const Dashboard: React.FC = () => {
                     borderTop: '1px solid var(--color-border)',
                     fontSize: '0.875rem',
                     color: 'var(--color-text-muted)',
-                    background: 'var(--gradient-surface)'
+                    background: 'var(--gradient-surface)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{
@@ -256,6 +266,24 @@ export const Dashboard: React.FC = () => {
                         }}></div>
                         Connected
                     </div>
+
+                    <button
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--color-text-muted)',
+                            padding: '0.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'color 0.2s',
+                        }}
+                        title="Settings"
+                    >
+                        <Settings size={18} />
+                    </button>
                 </div>
             </aside>
             <main style={{ flex: 1, overflow: 'hidden' }}>
