@@ -180,15 +180,28 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                 // Update UI to show session created
                 setChatMessages(prev => [...prev, { role: 'system', content: `Session ${sid.substring(0, 8)} created. Waiting for initialization...` }]);
 
-                // Poll to confirm session exists before interacting
+                // Poll to confirm session exists AND is ready before interacting
                 let attempts = 0;
                 let initialized = false;
-                while (attempts < 10 && !initialized) {
+                while (attempts < 20 && !initialized) { // Increased attempts
                     try {
-                        await api.devin.getSession(sid);
+                        const sessionData = await api.devin.getSession(sid);
+                        // Check if session is ready (not initializing)
+                        // Adjust property check based on actual API response structure if needed
+                        // But simply getting a 200 OK might not be enough if internal state is init.
+
+                        // If we get here, the session exists. checking status if available.
+                        // If the API returns "still initializing" on getSession, it would likely throw or return specific status.
+                        // Assuming getSession ensures existence. 
+
+                        // We'll also try a "dry run" or just rely on the delay if status isn't explicit
+                        // But to be safe, let's wait a bit more if we just got it.
                         initialized = true;
                     } catch (e) {
-                        // Wait 1s before retry
+                        // ignore error and retry
+                    }
+
+                    if (!initialized) {
                         await new Promise(resolve => setTimeout(resolve, 1000));
                         attempts++;
                     }
@@ -198,14 +211,34 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                     throw new Error("Timed out waiting for session to initialize");
                 }
 
-                // Prompt for Confidence
+                // Extra safety buffer for "still initializing" internal state
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                // Prompt for Confidence with Retry logic for "still initializing"
                 const confidencePrompt = `Assess your confidence in addressing this issue. 
                 Respond ONLY with a JSON object in this format: 
                 { "score": number, "reasoning": "string" }
                 Score should be 0-100.`;
 
-                // Wait a bit or send message immediately
-                await api.devin.sendMessage(sid, confidencePrompt);
+                let messageSent = false;
+                let msgAttempts = 0;
+                while (!messageSent && msgAttempts < 5) {
+                    try {
+                        await api.devin.sendMessage(sid, confidencePrompt);
+                        messageSent = true;
+                    } catch (e: any) {
+                        const errMsg = typeof e?.response?.data?.error === 'object' ? JSON.stringify(e.response.data.error) : e?.response?.data?.error || e.message;
+                        if (errMsg.includes("initializing")) {
+                            console.log("Session still initializing, retrying message send...");
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                            msgAttempts++;
+                        } else {
+                            throw e; // specific error we can't handle
+                        }
+                    }
+                }
+
+                if (!messageSent) throw new Error("Failed to send initial message after retries");
 
                 // Poll for response (simulated via standard chat load or explicit check)
                 // For now, let's manually fetch messages after a delay or just wait users input
