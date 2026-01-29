@@ -187,16 +187,16 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                     try {
                         const sessionData = await api.devin.getSession(sid);
                         // Check if session is ready (not initializing)
-                        // Adjust property check based on actual API response structure if needed
-                        // But simply getting a 200 OK might not be enough if internal state is init.
-
-                        // If we get here, the session exists. checking status if available.
-                        // If the API returns "still initializing" on getSession, it would likely throw or return specific status.
-                        // Assuming getSession ensures existence. 
-
-                        // We'll also try a "dry run" or just rely on the delay if status isn't explicit
-                        // But to be safe, let's wait a bit more if we just got it.
-                        initialized = true;
+                        // If status is present, ensure it's not strictly 'initializing' or 'creating'
+                        // The actual status for "ready" is usually 'running' or 'blocked' or 'stopped', but definitely not 'initializing'
+                        if (sessionData && sessionData.status) {
+                            if (sessionData.status !== 'initializing' && sessionData.status !== 'creating') {
+                                initialized = true;
+                            }
+                        } else {
+                            // Fallback if status not in response, assume existence means ready-ish
+                            initialized = true;
+                        }
                     } catch (e) {
                         // ignore error and retry
                     }
