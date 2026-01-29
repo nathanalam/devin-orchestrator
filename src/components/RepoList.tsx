@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api';
-import { GitBranch, Star, Search } from 'lucide-react';
+import { GitBranch, Star, Search, Clock } from 'lucide-react';
 
 interface Repo {
     id: number;
@@ -10,6 +10,7 @@ interface Repo {
     stargazers_count: number;
     html_url: string;
     updated_at: string;
+    language: string;
 }
 
 interface RepoListProps {
@@ -37,51 +38,183 @@ export const RepoList: React.FC<RepoListProps> = ({ onSelectRepo }) => {
         }
     };
 
-    const filteredRepos = repos.filter(r => r.name.toLowerCase().includes(search.toLowerCase()));
+    const filteredRepos = repos.filter(r =>
+        r.name.toLowerCase().includes(search.toLowerCase()) ||
+        r.description?.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+        return `${Math.floor(diffDays / 30)}mo ago`;
+    };
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
-            <div className="p-4 border-b border-[var(--color-border)]">
-                <h2 className="text-xl font-bold mb-4">Repositories</h2>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-muted)]" size={16} />
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            overflow: 'hidden'
+        }}>
+            <div style={{
+                padding: '1.5rem',
+                borderBottom: '1px solid var(--color-border)'
+            }}>
+                <h2 style={{
+                    fontSize: '1.125rem',
+                    fontWeight: '600',
+                    marginBottom: '1rem'
+                }}>
+                    Repositories
+                </h2>
+                <div style={{ position: 'relative' }}>
+                    <Search
+                        style={{
+                            position: 'absolute',
+                            left: '0.875rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            color: 'var(--color-text-muted)',
+                            pointerEvents: 'none'
+                        }}
+                        size={16}
+                    />
                     <input
                         type="text"
                         placeholder="Search repositories..."
-                        className="pl-10"
+                        style={{ paddingLeft: '2.5rem' }}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-2">
+            <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '0.75rem'
+            }}>
                 {loading ? (
-                    <div className="text-center p-4 text-[var(--color-text-muted)]">Loading repositories...</div>
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '3rem 1rem',
+                        color: 'var(--color-text-muted)'
+                    }}>
+                        <div style={{
+                            width: '32px',
+                            height: '32px',
+                            margin: '0 auto 1rem',
+                            border: '2px solid transparent',
+                            borderTopColor: 'var(--color-primary)',
+                            borderRadius: '50%',
+                            animation: 'spin 0.8s linear infinite'
+                        }}></div>
+                        Loading repositories...
+                    </div>
                 ) : (
-                    <div className="space-y-2">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {filteredRepos.map(repo => (
                             <div
                                 key={repo.id}
                                 onClick={() => onSelectRepo(repo)}
-                                className="p-3 rounded-[var(--radius-md)] hover:bg-[var(--color-surface-hover)] cursor-pointer transition-colors border border-transparent hover:border-[var(--color-border)]"
+                                className="glass-card"
+                                style={{
+                                    padding: '1rem',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                                }}
                             >
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-medium text-[var(--color-primary)] truncate" title={repo.name}>{repo.name}</h3>
-                                    <div className="flex items-center text-xs text-[var(--color-text-muted)]">
-                                        <Star size={12} className="mr-1" />
-                                        {repo.stargazers_count}
-                                    </div>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    marginBottom: '0.5rem'
+                                }}>
+                                    <h3 style={{
+                                        fontSize: '0.9375rem',
+                                        fontWeight: '600',
+                                        color: 'var(--color-primary)',
+                                        margin: 0,
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                        flex: 1
+                                    }}>
+                                        {repo.name}
+                                    </h3>
+                                    {repo.stargazers_count > 0 && (
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.25rem',
+                                            fontSize: '0.75rem',
+                                            color: 'var(--color-text-muted)',
+                                            marginLeft: '0.5rem',
+                                            flexShrink: 0
+                                        }}>
+                                            <Star size={12} fill="var(--color-warning)" color="var(--color-warning)" />
+                                            {repo.stargazers_count}
+                                        </div>
+                                    )}
                                 </div>
-                                <p className="text-sm text-[var(--color-text-muted)] line-clamp-2 my-1">{repo.description || "No description"}</p>
-                                <div className="flex items-center text-xs text-[var(--color-text-muted)] mt-2">
-                                    <GitBranch size={12} className="mr-1" />
-                                    Updated {new Date(repo.updated_at).toLocaleDateString()}
+
+                                {repo.description && (
+                                    <p style={{
+                                        fontSize: '0.8125rem',
+                                        color: 'var(--color-text-muted)',
+                                        margin: '0 0 0.75rem 0',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        lineHeight: '1.4'
+                                    }}>
+                                        {repo.description}
+                                    </p>
+                                )}
+
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '1rem',
+                                    fontSize: '0.75rem',
+                                    color: 'var(--color-text-muted)'
+                                }}>
+                                    {repo.language && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                                            <div style={{
+                                                width: '8px',
+                                                height: '8px',
+                                                borderRadius: '50%',
+                                                background: 'var(--color-primary)'
+                                            }}></div>
+                                            {repo.language}
+                                        </div>
+                                    )}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                                        <Clock size={12} />
+                                        {formatDate(repo.updated_at)}
+                                    </div>
                                 </div>
                             </div>
                         ))}
                         {filteredRepos.length === 0 && !loading && (
-                            <div className="text-center p-4 text-[var(--color-text-muted)]">No repositories found.</div>
+                            <div style={{
+                                textAlign: 'center',
+                                padding: '3rem 1rem',
+                                color: 'var(--color-text-muted)'
+                            }}>
+                                <GitBranch size={48} style={{ margin: '0 auto 1rem', opacity: 0.3 }} />
+                                <p>No repositories found</p>
+                            </div>
                         )}
                     </div>
                 )}

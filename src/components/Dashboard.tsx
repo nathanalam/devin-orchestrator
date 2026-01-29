@@ -2,18 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { RepoList } from './RepoList';
 import { ProjectView } from './ProjectView';
 import { api } from '../services/api';
-import { Github, Key } from 'lucide-react';
+import { Github, Key, Sparkles } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
     const [selectedRepo, setSelectedRepo] = useState<any>(null);
     const [token, setToken] = useState(api.getGithubToken() || '');
-    const [devinToken, setDevinToken] = useState(api.getDevinToken() || '');
+    const [devinToken, setDevinToken] = useState(api.getDevinToken() || 'cog_7n2jwn5xsglgpnmyc24ydtecy4gqhczpq3c66bttel47gzjhtyjq');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
     useEffect(() => {
         if (token) {
-            // Validate token or just assume valid for now and try to load user
             api.github.getUser()
                 .then(() => setIsAuthenticated(true))
                 .catch(() => setIsAuthenticated(false))
@@ -26,50 +25,150 @@ export const Dashboard: React.FC = () => {
     const handleLogin = () => {
         api.setGithubToken(token);
         api.setDevinToken(devinToken);
-        // Reload to force check 
         window.location.reload();
     };
 
     if (isCheckingAuth) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[var(--color-bg)]">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--color-primary)]"></div>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh',
+                background: 'var(--color-bg-primary)'
+            }}>
+                <div style={{
+                    width: '48px',
+                    height: '48px',
+                    border: '3px solid transparent',
+                    borderTopColor: 'var(--color-primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite'
+                }}></div>
+                <style>{`
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                `}</style>
             </div>
         );
     }
 
     if (!isAuthenticated) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-[var(--color-bg)]">
-                <div className="w-full max-w-md p-8 bg-[var(--color-surface)] rounded-[var(--radius-lg)] shadow-lg border border-[var(--color-border)]">
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold mb-2">Devin Orchestrator</h1>
-                        <p className="text-[var(--color-text-muted)]">Connect to GitHub and Devin to start.</p>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh',
+                padding: '2rem'
+            }}>
+                <div style={{
+                    width: '100%',
+                    maxWidth: '480px',
+                    padding: '3rem',
+                    background: 'var(--color-surface)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: 'var(--radius-xl)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: 'var(--shadow-xl)'
+                }}>
+                    <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            margin: '0 auto 1.5rem',
+                            background: 'var(--gradient-primary)',
+                            borderRadius: 'var(--radius-lg)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: 'var(--shadow-glow)'
+                        }}>
+                            <Sparkles size={40} color="white" />
+                        </div>
+                        <h1 style={{
+                            fontSize: '2rem',
+                            fontWeight: '700',
+                            marginBottom: '0.5rem',
+                            background: 'var(--gradient-primary)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text'
+                        }}>
+                            Devin Orchestrator
+                        </h1>
+                        <p style={{
+                            color: 'var(--color-text-muted)',
+                            fontSize: '0.95rem'
+                        }}>
+                            Connect GitHub and Devin AI to supercharge your workflow
+                        </p>
                     </div>
 
-                    <div className="space-y-4">
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         <div>
-                            <label className="block text-sm font-medium mb-1">GitHub Personal Access Token</label>
-                            <div className="relative">
-                                <Github className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
+                            <label style={{
+                                display: 'block',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                marginBottom: '0.5rem',
+                                color: 'var(--color-text-secondary)'
+                            }}>
+                                GitHub Personal Access Token
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <Github
+                                    style={{
+                                        position: 'absolute',
+                                        left: '1rem',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: 'var(--color-text-muted)'
+                                    }}
+                                    size={18}
+                                />
                                 <input
                                     type="password"
-                                    className="pl-10"
+                                    style={{ paddingLeft: '3rem' }}
                                     placeholder="ghp_..."
                                     value={token}
                                     onChange={e => setToken(e.target.value)}
                                 />
                             </div>
-                            <p className="text-xs text-[var(--color-text-muted)] mt-1">Required to list repositories and manage issues.</p>
+                            <p style={{
+                                fontSize: '0.75rem',
+                                color: 'var(--color-text-muted)',
+                                marginTop: '0.5rem'
+                            }}>
+                                Required to access repositories and manage issues
+                            </p>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">Devin Service Token</label>
-                            <div className="relative">
-                                <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-muted)]" size={18} />
+                            <label style={{
+                                display: 'block',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                marginBottom: '0.5rem',
+                                color: 'var(--color-text-secondary)'
+                            }}>
+                                Devin Service Token
+                            </label>
+                            <div style={{ position: 'relative' }}>
+                                <Key
+                                    style={{
+                                        position: 'absolute',
+                                        left: '1rem',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: 'var(--color-text-muted)'
+                                    }}
+                                    size={18}
+                                />
                                 <input
                                     type="password"
-                                    className="pl-10"
+                                    style={{ paddingLeft: '3rem' }}
                                     placeholder="cog_..."
                                     value={devinToken}
                                     onChange={e => setDevinToken(e.target.value)}
@@ -77,8 +176,18 @@ export const Dashboard: React.FC = () => {
                             </div>
                         </div>
 
-                        <button className="w-full bg-[var(--color-primary)] text-white py-2 mt-4" onClick={handleLogin}>
-                            Connect
+                        <button
+                            className="primary"
+                            style={{
+                                width: '100%',
+                                padding: '0.875rem',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                marginTop: '0.5rem'
+                            }}
+                            onClick={handleLogin}
+                        >
+                            Connect & Continue
                         </button>
                     </div>
                 </div>
@@ -87,28 +196,108 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-            <aside className="w-80 border-r border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col">
-                <div className="p-4 border-b border-[var(--color-border)]">
-                    <h1 className="font-bold text-lg flex items-center gap-2">
-                        <BotIcon /> Devin Orchestrator
+        <div style={{
+            display: 'flex',
+            height: '100vh',
+            width: '100%'
+        }}>
+            <aside style={{
+                width: '360px',
+                background: 'var(--color-surface)',
+                backdropFilter: 'blur(20px)',
+                borderRight: '1px solid var(--color-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: 'var(--shadow-lg)'
+            }}>
+                <div style={{
+                    padding: '1.5rem',
+                    borderBottom: '1px solid var(--color-border)',
+                    background: 'var(--gradient-surface)'
+                }}>
+                    <h1 style={{
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem'
+                    }}>
+                        <div style={{
+                            width: '36px',
+                            height: '36px',
+                            background: 'var(--gradient-primary)',
+                            borderRadius: 'var(--radius-md)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <Sparkles size={20} color="white" />
+                        </div>
+                        Devin Orchestrator
                     </h1>
                 </div>
-                <div className="flex-1 overflow-hidden">
+                <div style={{ flex: 1, overflow: 'hidden' }}>
                     <RepoList onSelectRepo={setSelectedRepo} />
                 </div>
-                <div className="p-4 border-t border-[var(--color-border)] text-sm text-[var(--color-text-muted)]">
-                    Logged in
+                <div style={{
+                    padding: '1rem 1.5rem',
+                    borderTop: '1px solid var(--color-border)',
+                    fontSize: '0.875rem',
+                    color: 'var(--color-text-muted)',
+                    background: 'var(--gradient-surface)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: 'var(--color-success)',
+                            boxShadow: '0 0 8px var(--color-success)'
+                        }}></div>
+                        Connected
+                    </div>
                 </div>
             </aside>
-            <main className="flex-1 overflow-hidden">
+            <main style={{ flex: 1, overflow: 'hidden' }}>
                 {selectedRepo ? (
                     <ProjectView repo={selectedRepo} />
                 ) : (
-                    <div className="flex items-center justify-center h-full text-[var(--color-text-muted)]">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-bold mb-2 text-[var(--color-text)]">Welcome</h2>
-                            <p>Select a repository from the sidebar to get started.</p>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '100%',
+                        textAlign: 'center'
+                    }}>
+                        <div>
+                            <div style={{
+                                width: '120px',
+                                height: '120px',
+                                margin: '0 auto 2rem',
+                                background: 'var(--gradient-surface)',
+                                borderRadius: 'var(--radius-xl)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '1px solid var(--color-border)'
+                            }}>
+                                <Github size={60} color="var(--color-primary)" />
+                            </div>
+                            <h2 style={{
+                                fontSize: '1.75rem',
+                                fontWeight: '700',
+                                marginBottom: '0.75rem'
+                            }}>
+                                Welcome to Devin Orchestrator
+                            </h2>
+                            <p style={{
+                                color: 'var(--color-text-muted)',
+                                fontSize: '1.05rem',
+                                maxWidth: '400px',
+                                margin: '0 auto'
+                            }}>
+                                Select a repository from the sidebar to start managing issues and collaborating with Devin AI
+                            </p>
                         </div>
                     </div>
                 )}
@@ -116,12 +305,3 @@ export const Dashboard: React.FC = () => {
         </div>
     );
 };
-
-const BotIcon = () => (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-        <path d="M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M8 8H10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <path d="M14 8H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-);
