@@ -3,7 +3,7 @@ import { RepoList } from './RepoList';
 import { ProjectView } from './ProjectView';
 import { SettingsModal } from './SettingsModal';
 import { api } from '../services/api';
-import { Github, Key, Settings } from 'lucide-react';
+import { Github, Key, Settings, Info } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
     const [selectedRepo, setSelectedRepo] = useState<any>(null);
@@ -281,8 +281,28 @@ export const Dashboard: React.FC = () => {
                     background: 'var(--gradient-surface)',
                     display: 'flex',
                     justifyContent: 'flex-end',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    gap: '0.5rem'
                 }}>
+                    <a
+                        href="https://devin.ai"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--color-text-muted)',
+                            padding: '0.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'color 0.2s',
+                        }}
+                        title="Devin AI"
+                    >
+                        <Info size={18} />
+                    </a>
                     <button
                         onClick={() => setIsSettingsOpen(true)}
                         style={{
