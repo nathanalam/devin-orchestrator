@@ -9,12 +9,22 @@ exports.handler = async function (event, context) {
     }
 
     try {
-        const { code, client_id, client_secret } = JSON.parse(event.body);
+        const { code } = JSON.parse(event.body);
+        const client_id = 'Ov23lieuQ7c564WTAo3f';
+        const client_secret = process.env.GITHUB_CLIENT_SECRET;
 
-        if (!code || !client_id || !client_secret) {
+        if (!code) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ error: 'Missing required fields' }),
+                body: JSON.stringify({ error: 'Missing code' }),
+            };
+        }
+
+        if (!client_secret) {
+            console.error('Missing GITHUB_CLIENT_SECRET');
+            return {
+                statusCode: 500,
+                body: JSON.stringify({ error: 'Server configuration error' }),
             };
         }
 
