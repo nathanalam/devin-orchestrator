@@ -87,7 +87,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         marginBottom: '0.5rem',
                         color: 'var(--color-text-secondary)'
                     }}>
-                        Devin Service Token
+                        Devin API Key
                     </label>
                     <div style={{ position: 'relative' }}>
                         <Key
@@ -103,7 +103,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         <input
                             type="password"
                             style={{ paddingLeft: '3rem', width: '100%' }}
-                            placeholder="cog_..."
+                            placeholder="bun_..."
                             value={devinToken}
                             onChange={e => setDevinToken(e.target.value)}
                         />

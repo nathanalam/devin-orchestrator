@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const DEVIN_BASE_URL = 'https://api.devin.ai/v3';
+
 
 export const handler = async function (event, context) {
     // Handle CORS preflight
@@ -41,29 +41,18 @@ export const handler = async function (event, context) {
 
         switch (action) {
             case 'createSession':
-                // https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions
                 response = await axios.post(
-                    `${DEVIN_BASE_URL}/sessions`,
-                    payload,
+                    `https://api.devin.ai/v1/sessions`,
+                    payload, // Expected to have prompt, etc.
                     axiosConfig
                 );
                 break;
 
             case 'sendMessage':
                 if (!sessionId) throw new Error('Missing session ID');
-                // v3 might be different, let's assume /sessions/{id}/message or similar.
-                // Checking docs from chunk 6... it lists Create/Terminate/List.
-                // Wait, "SendMessage" is not explicitly in the chunk 6 headers.
-                // However, usually it's interacting with the session.
-                // Let's assume v1 compatibility or check docs if I could.
-                // Reverting to v1 for sendMessage if v3 is not clear?
-                // Actually, the prompt says "https://docs.devin.ai/api-reference/v3/overview".
-                // I'll stick to a generic "request" proxy if possible, but let's try to map it.
-                // If v3 doesn't have sendMessage, maybe it's via "Playbooks" or something?
-                // Let's assume standard REST: POST /sessions/{id}/messages
                 response = await axios.post(
-                    `${DEVIN_BASE_URL}/sessions/${sessionId}/messages`, // Guessing path
-                    { content: payload.message }, // Guessing payload
+                    `https://api.devin.ai/v1/sessions/${sessionId}/messages`,
+                    { content: payload.message },
                     axiosConfig
                 );
                 break;
@@ -71,7 +60,7 @@ export const handler = async function (event, context) {
             case 'getSession':
                 if (!sessionId) throw new Error('Missing session ID');
                 response = await axios.get(
-                    `${DEVIN_BASE_URL}/sessions/${sessionId}`,
+                    `https://api.devin.ai/v1/sessions/${sessionId}`,
                     axiosConfig
                 );
                 break;
@@ -80,9 +69,8 @@ export const handler = async function (event, context) {
                 const params = new URLSearchParams();
                 if (payload.limit) params.append('limit', payload.limit);
                 if (payload.offset) params.append('offset', payload.offset);
-                // v3 might use different param names, but these are standard.
                 response = await axios.get(
-                    `${DEVIN_BASE_URL}/sessions?${params.toString()}`,
+                    `https://api.devin.ai/v1/sessions?${params.toString()}`,
                     axiosConfig
                 );
                 break;
@@ -92,7 +80,7 @@ export const handler = async function (event, context) {
                 if (payload.method && payload.path) {
                     response = await axios({
                         method: payload.method,
-                        url: `${DEVIN_BASE_URL}${payload.path}`,
+                        url: `https://api.devin.ai/v1${payload.path}`,
                         data: payload.data,
                         params: payload.params,
                         headers: axiosConfig.headers

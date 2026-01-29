@@ -8,7 +8,7 @@ import { Github, Key, Sparkles, Settings } from 'lucide-react';
 export const Dashboard: React.FC = () => {
     const [selectedRepo, setSelectedRepo] = useState<any>(null);
     const [token, setToken] = useState(api.getGithubToken() || '');
-    const [devinToken, setDevinToken] = useState(api.getDevinToken() || 'cog_7n2jwn5xsglgpnmyc24ydtecy4gqhczpq3c66bttel47gzjhtyjq');
+    const [devinToken, setDevinToken] = useState(api.getDevinToken() || '');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -155,7 +155,7 @@ export const Dashboard: React.FC = () => {
                                 marginBottom: '0.5rem',
                                 color: 'var(--color-text-secondary)'
                             }}>
-                                Devin Service Token
+                                Devin API Key
                             </label>
                             <div style={{ position: 'relative' }}>
                                 <Key
@@ -171,7 +171,7 @@ export const Dashboard: React.FC = () => {
                                 <input
                                     type="password"
                                     style={{ paddingLeft: '3rem' }}
-                                    placeholder="cog_..."
+                                    placeholder="bun_..."
                                     value={devinToken}
                                     onChange={e => setDevinToken(e.target.value)}
                                 />
