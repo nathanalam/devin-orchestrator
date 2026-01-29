@@ -191,42 +191,57 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
     };
 
     const pollForConfidence = async (sid: string) => {
-        console.log("Polling confidence for", sid);
-        let attempts = 0;
+        let parsed = false;
         const interval = setInterval(async () => {
-            attempts++;
-            if (attempts > 10) clearInterval(interval);
+            if (parsed || !sid) {
+                clearInterval(interval);
+                return;
+            }
             try {
-                // v1 getSession logic might return "structured_output" or just log?
-                // We'll read the last message from Devin.
-                // Assuming v1 doesn't have an easy "getMessages" endpoint documented in chunk logic,
-                // but we can try generic patterns. 
-                // Actually, `getSession` in v1 usually returns status.
-                // We might need to rely on the user seeing the output, but requirement says "rendered in a special way".
-                // I'll assume we can't easily parse it without a "listMessages" endpoint. 
-                // Wait, devin-proxy `getSession` returns session details.
-                // Does it include execution log?
-                // Functional approximation: We will just let the user chat and if we see JSON in the message stream (if we had one), we render it.
-                // Since I can't implement real-time websocket here easily, I'll mock the confidence response appearing 
-                // or try to fetch it if `get_session_details` includes last_message.
-                // Assuming generic behavior: just update UI.
-                setSessionStatus('gathering');
-            } catch (e) { }
-        }, 2000);
+                const data = await api.devin.getSession(sid);
+                const msgs = data.messages || [];
+                if (msgs.length > 0) {
+                    const lastMsg = msgs[msgs.length - 1];
+                    // Look for JSON in the assistant's response
+                    if (lastMsg && (lastMsg.role === 'assistant' || lastMsg.role === 'model')) {
+                        const content = lastMsg.body || lastMsg.content || "";
+                        const jsonMatch = content.match(/\{[\s\S]*"score"[\s\S]*\}/);
+                        if (jsonMatch) {
+                            try {
+                                const json = JSON.parse(jsonMatch[0]);
+                                if (json.score !== undefined) {
+                                    setConfidence(json);
+                                    setSessionStatus('gathering');
+                                    parsed = true;
+
+                                    const mappedMessages = msgs.map((m: any) => ({
+                                        role: m.role === 'model' ? 'assistant' : m.role,
+                                        content: m.body || m.content
+                                    }));
+                                    setChatMessages(mappedMessages);
+                                }
+                            } catch (e) {
+                                console.log("Failed to parse confidence JSON", e);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Polling error", e);
+            }
+        }, 3000);
     };
 
     const loadChatHistory = async (sid: string) => {
-        // Since we don't have a clear "listMessages" endpoint in the proxy (we made `getSession`),
-        // we might not actully show history unless we store it or `getSession` returns it.
-        // I will assume `getSession` returns some log or we rely on transient state for now, 
-        // OR I should have added `listMessages` to proxy?
-        // The prompt says "sessions from Devin...".
-        // Use `getSession` repeatedly to check status.
         try {
             const data = await api.devin.getSession(sid);
-            // If data contains messages, set them.
-            // Using placeholder for now if no message list available.
-            console.log("Session loaded", data);
+            if (data.messages && Array.isArray(data.messages)) {
+                const mappedMessages = data.messages.map((m: any) => ({
+                    role: m.role === 'model' ? 'assistant' : m.role,
+                    content: m.body || m.content
+                }));
+                setChatMessages(mappedMessages);
+            }
         } catch (e) {
             console.error(e);
         }
@@ -240,10 +255,15 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
 
         try {
             await api.devin.sendMessage(currentSessionId, text);
-            // In a real app we'd poll for reply.
-            // Mock reply for UI demo if needed or expect async updates.
-        } catch (e) {
-            setChatMessages(prev => [...prev, { role: 'error', content: "Failed to send." }]);
+            console.log("Message sent successfully");
+
+            // Poll for response shortly after
+            setTimeout(() => {
+                loadChatHistory(currentSessionId);
+            }, 2000);
+        } catch (e: any) {
+            console.error("Failed to send message:", e);
+            setChatMessages(prev => [...prev, { role: 'error', content: `Failed to send: ${e.message || 'Unknown error'}` }]);
         }
     };
 
@@ -259,25 +279,21 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
     // -- Render Helpers --
 
     const renderConfidence = () => {
-        // Mock confidence if we are in gathering mode and don't have it (for demo)
-        // or parse it from messages if we could.
-        // For the sake of the requirement "rendered in a special way":
-        if (sessionStatus === 'gathering' && !confidence) {
-            // Mocking it for the UI as I can't really get the real response from the blind API call easily without sockets
-            // In production code, we'd parse the LLM response.
+        if (confidence) {
             return (
-                <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '1.5rem', borderLeft: '4px solid var(--color-primary)' }}>
+                <div className="glass-card animate-slide-up" style={{ padding: '1.5rem', marginBottom: '1.5rem', borderLeft: '4px solid var(--color-primary)' }}>
                     <h3 style={{ marginTop: 0, fontSize: '1rem', fontWeight: 600 }}>Confidence Assessment</h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
                         <div style={{
                             width: '60px', height: '60px', borderRadius: '50%', background: 'var(--color-bg-secondary)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.25rem',
-                            border: '3px solid var(--color-success)', color: 'var(--color-success)'
+                            border: `3px solid ${confidence.score > 70 ? 'var(--color-success)' : 'var(--color-warning)'}`,
+                            color: confidence.score > 70 ? 'var(--color-success)' : 'var(--color-warning)'
                         }}>
-                            85%
+                            {confidence.score}%
                         </div>
                         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                            Based on the issue description, I can identify the relevant code paths. I suggest verifying the reproduction steps first.
+                            {confidence.reasoning}
                         </p>
                     </div>
                 </div>
