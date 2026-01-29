@@ -202,7 +202,12 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
             }
         } catch (e: any) {
             console.error("Failed to init session", e);
-            const errorMsg = e.response?.data?.error || e.message || 'Unknown error';
+            let errorMsg = e.message || 'Unknown error';
+            if (e.response?.data?.error) {
+                errorMsg = typeof e.response.data.error === 'object'
+                    ? JSON.stringify(e.response.data.error)
+                    : e.response.data.error;
+            }
             setChatMessages(prev => [...prev, { role: 'error', content: `Failed to initialize session on Devin: ${errorMsg}` }]);
         }
     };
