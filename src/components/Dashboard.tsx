@@ -280,20 +280,9 @@ export const Dashboard: React.FC = () => {
                     color: 'var(--color-text-muted)',
                     background: 'var(--gradient-surface)',
                     display: 'flex',
-                    justifyContent: 'space-between',
+                    justifyContent: 'flex-end',
                     alignItems: 'center'
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{
-                            width: '8px',
-                            height: '8px',
-                            borderRadius: '50%',
-                            background: 'var(--color-success)',
-                            boxShadow: '0 0 8px var(--color-success)'
-                        }}></div>
-                        Connected
-                    </div>
-
                     <button
                         onClick={() => setIsSettingsOpen(true)}
                         style={{
