@@ -64,11 +64,11 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
     const handleCreateIssue = async () => {
         if (!newIssueTitle) return;
         try {
-            await api.github.createIssue(repo.full_name.split('/')[0], repo.name, newIssueTitle, newIssueBody);
+            const newIssue = await api.github.createIssue(repo.full_name.split('/')[0], repo.name, newIssueTitle, newIssueBody);
+            setIssues(prev => [newIssue, ...prev]);
             setNewIssueTitle('');
             setNewIssueBody('');
             setCreatingIssue(false);
-            loadIssues();
         } catch (e) {
             console.error("Failed to create issue", e);
         }
