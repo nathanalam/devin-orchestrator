@@ -162,6 +162,9 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
     };
 
     const initializeIssueSession = async (issue: Issue) => {
+        // Initial loading feedback
+        setChatMessages([{ role: 'system', content: 'Starting session with Devin...' }]);
+
         try {
             // Create Session
             const res = await api.devin.createSession({
@@ -174,14 +177,17 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                 setCurrentSessionId(sid);
                 localStorage.setItem(`devin_session_issue_${repo.full_name}_${issue.number}`, sid);
 
+                // Update UI to show session created
+                setChatMessages(prev => [...prev, { role: 'system', content: `Session ${sid.substring(0, 8)} created. Assessing confidence...` }]);
+
+                // Wait a moment for session to completely initialize/propagate
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
                 // Prompt for Confidence
                 const confidencePrompt = `Assess your confidence in addressing this issue. 
                 Respond ONLY with a JSON object in this format: 
                 { "score": number, "reasoning": "string" }
                 Score should be 0-100.`;
-
-                // Send system message prompt
-                setChatMessages([{ role: 'system', content: 'Initializing session and assessing confidence...' }]);
 
                 // Wait a bit or send message immediately
                 await api.devin.sendMessage(sid, confidencePrompt);
@@ -191,10 +197,13 @@ export const ProjectView: React.FC<ProjectViewProps> = ({ repo }) => {
                 // But request says "start by asking... before actually beginning to chat".
                 // So we should try to get the response.
                 pollForConfidence(sid);
+            } else {
+                throw new Error("No session ID returned");
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Failed to init session", e);
-            setChatMessages(prev => [...prev, { role: 'error', content: 'Failed to initialize session on Devin.' }]);
+            const errorMsg = e.response?.data?.error || e.message || 'Unknown error';
+            setChatMessages(prev => [...prev, { role: 'error', content: `Failed to initialize session on Devin: ${errorMsg}` }]);
         }
     };
 

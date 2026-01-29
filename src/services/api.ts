@@ -13,6 +13,16 @@ const getGithubHeaders = () => {
     };
 };
 
+// Helper to determine base URL
+const getBaseUrl = (endpoint: string) => {
+    // In development, hit the local proxy directly (strip .netlify/functions)
+    if (import.meta.env.DEV) {
+        return `http://localhost:8888/${endpoint}`;
+    }
+    // In production, use the Netlify function path
+    return `/.netlify/functions/${endpoint}`;
+};
+
 export const api = {
     // Auth Helpers
     setGithubToken: (token: string) => localStorage.setItem(GITHUB_TOKEN_KEY, token),
@@ -39,7 +49,7 @@ export const api = {
             return res.data;
         },
         exchangeToken: async (code: string) => {
-            const res = await axios.post('/.netlify/functions/exchange-token', { code });
+            const res = await axios.post(getBaseUrl('exchange-token'), { code });
             return res.data;
         }
     },
@@ -48,7 +58,7 @@ export const api = {
     devin: {
         request: async (action: string, payload: any = {}) => {
             const apiKey = localStorage.getItem(DEVIN_TOKEN_KEY) || ''; // Fallback to provided defaults if user wants
-            const res = await axios.post('/.netlify/functions/devin-proxy', {
+            const res = await axios.post(getBaseUrl('devin-proxy'), {
                 action,
                 apiKey,
                 ...payload
